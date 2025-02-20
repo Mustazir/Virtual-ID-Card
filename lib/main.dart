@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
+import 'dart:html' as html;
+import 'dart:typed_data';
 
 void main() => runApp(const MyApp());
 
@@ -11,6 +11,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       home: IDCardForm(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -24,29 +25,37 @@ class IDCardForm extends StatefulWidget {
 
 class _IDCardFormState extends State<IDCardForm> {
   final _formKey = GlobalKey<FormState>();
-
   String name = '';
-  String course = '';
   String idNumber = '';
-  String phoneNumber = '';
-  String issueDate = '';
-  String expireDate = '';
-  File? _image;
+  String semester = '';
+  String email = '';
+  Uint8List? _imageBytes;
 
+  // Image upload for web
   Future<void> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
+    final html.FileUploadInputElement uploadInput = html.FileUploadInputElement();
+    uploadInput.accept = 'image/*';
+    uploadInput.click();
+
+    uploadInput.onChange.listen((event) {
+      final file = uploadInput.files!.first;
+      final reader = html.FileReader();
+      reader.readAsArrayBuffer(file);
+      reader.onLoadEnd.listen((event) {
+        setState(() {
+          _imageBytes = reader.result as Uint8List;
+        });
       });
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Virtual ID Card')),
+      appBar: AppBar(
+        title: const Text('Custom ID Card'),
+        backgroundColor: Colors.black,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -55,47 +64,27 @@ class _IDCardFormState extends State<IDCardForm> {
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a name'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Please enter a name' : null,
                 onChanged: (value) => setState(() => name = value),
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Course'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a course'
-                    : null,
-                onChanged: (value) => setState(() => course = value),
-              ),
-              TextFormField(
                 decoration: const InputDecoration(labelText: 'ID Number'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter an ID number'
-                    : null,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Please enter ID number' : null,
                 onChanged: (value) => setState(() => idNumber = value),
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter a phone number'
-                    : null,
-                onChanged: (value) => setState(() => phoneNumber = value),
+                decoration: const InputDecoration(labelText: 'Semester'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Please enter semester' : null,
+                onChanged: (value) => setState(() => semester = value),
               ),
               TextFormField(
-                decoration:
-                    const InputDecoration(labelText: 'Issue Date (DD-MM-YYYY)'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter an issue date'
-                    : null,
-                onChanged: (value) => setState(() => issueDate = value),
-              ),
-              TextFormField(
-                decoration: const InputDecoration(
-                    labelText: 'Expire Date (DD-MM-YYYY)'),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Please enter an expire date'
-                    : null,
-                onChanged: (value) => setState(() => expireDate = value),
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Please enter email' : null,
+                onChanged: (value) => setState(() => email = value),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -113,15 +102,16 @@ class _IDCardFormState extends State<IDCardForm> {
                 child: const Text('Generate ID Card'),
               ),
               const SizedBox(height: 30),
-              if (name.isNotEmpty && course.isNotEmpty && idNumber.isNotEmpty)
+              if (name.isNotEmpty &&
+                  idNumber.isNotEmpty &&
+                  semester.isNotEmpty &&
+                  email.isNotEmpty)
                 IDCard(
                   name: name,
-                  course: course,
                   idNumber: idNumber,
-                  phoneNumber: phoneNumber,
-                  issueDate: issueDate,
-                  expireDate: expireDate,
-                  image: _image,
+                  semester: semester,
+                  email: email,
+                  imageBytes: _imageBytes,
                 ),
             ],
           ),
@@ -133,57 +123,102 @@ class _IDCardFormState extends State<IDCardForm> {
 
 class IDCard extends StatelessWidget {
   final String name;
-  final String course;
   final String idNumber;
-  final String phoneNumber;
-  final String issueDate;
-  final String expireDate;
-  final File? image;
+  final String semester;
+  final String email;
+  final Uint8List? imageBytes;
 
   const IDCard({
     super.key,
     required this.name,
-    required this.course,
     required this.idNumber,
-    required this.phoneNumber,
-    required this.issueDate,
-    required this.expireDate,
-    this.image,
+    required this.semester,
+    required this.email,
+    this.imageBytes,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.black,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 8,
+      elevation: 10,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (image != null)
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: FileImage(image!),
+            const Center(
+              child: Text(
+                'ID Card',
+                style: TextStyle(
+                  color: Colors.yellow,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            const SizedBox(height: 16),
-            Text('Name: $name',
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('Course: $course', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('ID: $idNumber', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('Phone: $phoneNumber', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('Issue Date: $issueDate',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 8),
-            Text('Expire Date: $expireDate',
-                style: const TextStyle(fontSize: 16)),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey[800],
+                backgroundImage: imageBytes != null ? MemoryImage(imageBytes!) : null,
+                child: imageBytes == null
+                    ? const Icon(Icons.person, size: 40, color: Colors.white)
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 30),
+            const Text(
+              'Name:',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            Text(
+              name,
+              style: const TextStyle(
+                color: Colors.yellow,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'ID:',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            Text(
+              idNumber,
+              style: const TextStyle(
+                color: Colors.yellow,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Current Semester:',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            Text(
+              semester,
+              style: const TextStyle(
+                color: Colors.yellow,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Icon(Icons.email, color: Colors.white, size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  email,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ),
           ],
         ),
       ),
