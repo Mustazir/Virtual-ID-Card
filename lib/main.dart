@@ -54,7 +54,7 @@ class _IDCardFormState extends State<IDCardForm> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Custom ID Card'),
-        backgroundColor: Colors.black,
+        backgroundColor: const Color.fromARGB(255, 252, 249, 249),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

@@ -1,16 +1,48 @@
-# flutter_application_2
+# Flutter ID Card Form
 
-A new Flutter project.
+A simple Flutter application that allows users to create a custom ID card by filling out a form and uploading a picture. The ID card includes the user's name, ID number, semester, email, and a profile image.
+
+## Features
+
+- Form to input user details:
+  - Name
+  - ID Number
+  - Semester
+  - Email
+- Image upload functionality to add a profile picture.
+- Display the generated ID card with user inputs and image.
+
+## Requirements
+
+- Flutter 3.0 or later
+- Dart 2.18 or later
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+Follow these steps to set up and run the app locally:
 
-A few resources to get you started if this is your first Flutter project:
+### 1. Clone the repository
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```bash
+git clone https://github.com/Mustazir/Virtual-ID-Card.git
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+2. Navigate to the project directory
+ cd flutter-id-card-form
+
+3. Install dependencies
+flutter pub get
+
+4. Run the app
+flutter run
+How It Works
+Input Fields: The user is prompted to enter their name, ID number, semester, and email.
+Image Upload: The user can upload a profile picture which will be displayed on the generated ID card.
+ID Card Preview: After entering the required details, the ID card will be generated and displayed on the screen.
+
+Dependencies
+Flutter:
+    sdk: flutter
+    cupertino_icons: ^1.0.8
+    image_picker: ^1.1.2
+
+    
